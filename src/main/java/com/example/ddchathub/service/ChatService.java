@@ -1,5 +1,6 @@
 package com.example.ddchathub.service;
 
+import com.example.ddchathub.dto.TagRequest;
 import com.example.ddchathub.entity.Customer;
 import com.example.ddchathub.entity.LineChannel;
 import com.example.ddchathub.entity.Message;
@@ -18,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -84,6 +86,21 @@ public class ChatService {
             map.put("id", c.getId());
             map.put("name", c.getFullName() != null ? c.getFullName() : "ลูกค้าใหม่");
 
+
+            List<Map<String, Object>> tagsList = new ArrayList<>();
+            if (c.getTags() != null) {
+                c.getTags().forEach(tag -> {
+                    Map<String, Object> tagMap = new HashMap<>();
+                    tagMap.put("id", tag.getId());
+                    tagMap.put("name", tag.getName());
+                    // ⚠️ หมายเหตุ: ถ้า Entity ของคุณชื่อ colorCode ให้เปลี่ยนเป็น tag.getColorCode() นะครับ
+                    tagMap.put("color", tag.getColorCode());
+                    tagsList.add(tagMap);
+                });
+            }
+            // 💡 2. ยัด List ของแท็กใส่ลงไปในกล่องของลูกค้าคนนี้
+            map.put("tags", tagsList);
+
             // หาข้อความล่าสุด
             Optional<Message> lastMsg = messageRepository.findTopByCustomerIdOrderByCreatedAtDesc(c.getId());
 
@@ -103,11 +120,10 @@ public class ChatService {
                 map.put("channel", "LINE OA");
             }
 
-            map.put("unread", 0); // 💡 ปล่อย 0 ไว้ก่อน เดี๋ยวเราทำระบบอ่านแล้วในสเต็ป 2
+            map.put("unread", 0); // ปล่อย 0 ไว้ก่อน
             summaries.add(map);
         }
 
-        // เรียงลำดับให้คนที่ทักมาล่าสุดอยู่บนสุด
         summaries.sort((m1, m2) -> {
             LocalDateTime t1 = (LocalDateTime) m1.get("time");
             LocalDateTime t2 = (LocalDateTime) m2.get("time");

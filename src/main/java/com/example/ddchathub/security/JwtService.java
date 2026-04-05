@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 @Service
@@ -21,9 +23,13 @@ public class JwtService {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    public String generateToken(String username) {
+    public String generateToken(com.example.ddchathub.entity.Admin admin) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", admin.getRole().name());
+
         return Jwts.builder()
-                .subject(username)
+                .claims(claims) // 💡 แนบ Claims เข้าไป
+                .subject(admin.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(getSigningKey())

@@ -38,7 +38,7 @@ public class AuthService {
         adminRepository.save(admin);
 
         // 4. สร้าง Token ส่งกลับไปให้เลย จะได้ Login อัตโนมัติหลังสมัครเสร็จ
-        String jwtToken = jwtService.generateToken(admin.getUsername());
+        String jwtToken = jwtService.generateToken(admin);
         return new LoginResponse(jwtToken);
     }
 }
