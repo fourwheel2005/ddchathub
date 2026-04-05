@@ -1,6 +1,7 @@
 package com.example.ddchathub.service;
 
 import com.example.ddchathub.entity.Customer;
+import com.example.ddchathub.entity.LineChannel;
 import com.example.ddchathub.entity.Message;
 import com.example.ddchathub.repository.CustomerRepository;
 import com.example.ddchathub.repository.MessageRepository;
@@ -33,37 +34,43 @@ public class ChatService {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ไม่พบข้อมูลลูกค้า"));
 
-        if (customer.getLineUserId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ลูกค้ารายนี้ไม่ได้เชื่อมต่อกับ LINE");
+        // 💡 1. ค้นหาข้อความล่าสุด เพื่อดูว่าลูกค้าคุยค้างไว้กับ "สาขาไหน"
+        Message lastMsg = messageRepository.findTopByCustomerIdOrderByCreatedAtDesc(customerId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "ยังไม่มีประวัติการคุย ไม่สามารถตอบกลับได้"));
+
+        LineChannel channel = lastMsg.getLineChannel();
+        if (channel == null || channel.getChannelAccessToken() == null) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ไม่ได้ตั้งค่า Token ของสาขานี้ไว้");
         }
 
         try {
-            // 1. สั่งให้ LINE ส่งข้อความหาลูกค้า
-            PushMessageRequest pushMessageRequest = new PushMessageRequest(
+            MessagingApiClient dynamicClient = MessagingApiClient.builder(channel.getChannelAccessToken()).build();
+
+            // 3. ส่งข้อความกลับไปหา LINE
+            PushMessageRequest pushRequest = new PushMessageRequest(
                     customer.getLineUserId(),
                     List.of(new TextMessage(text)),
-                    false,
-                    null
+                    false, null
             );
 
-            messagingApiClient.pushMessage(UUID.randomUUID(), pushMessageRequest).get();
+            dynamicClient.pushMessage(UUID.randomUUID(), pushRequest).get();
 
-            // 2. บันทึกข้อความลง Database
+            // 4. บันทึกข้อความลง Database แอดมินตอบกลับ
             Message adminMessage = Message.builder()
                     .customer(customer)
-                    .senderType("AGENT") // 💡 ใช้ 'AGENT' ให้ตรงกับที่หน้า React เช็กไว้ครับ
+                    .lineChannel(channel) // ผูกว่าเป็นแชทของสาขานี้
+                    .senderType("AGENT")
                     .content(text)
-                    .createdAt(LocalDateTime.now()) // 💡 ประทับเวลาด้วย
                     .build();
-            Message savedMessage = messageRepository.save(adminMessage);
+            Message savedMsg = messageRepository.save(adminMessage);
 
-            // 💡 3. ปาข้อความที่เพิ่งบันทึกเข้าท่อ WebSocket เพื่อให้แอดมินคนอื่นเห็นแบบ Real-time
-            messagingTemplate.convertAndSend("/topic/messages", savedMessage);
+            // 5. อัปเดตหน้าจอแอดมินคนอื่นๆ
+            messagingTemplate.convertAndSend("/topic/messages", savedMsg);
 
-            log.info("✅ ส่งข้อความหาลูกค้า {} สำเร็จ", customer.getFullName());
+            log.info("✅ ส่งข้อความตอบกลับในนามสาขา {} สำเร็จ", channel.getChannelName());
 
         } catch (Exception e) {
-            log.error("ส่งข้อความไม่สำเร็จ: ", e);
+            log.error("❌ ส่งข้อความไม่สำเร็จ: ", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ไม่สามารถส่งข้อความได้");
         }
     }
