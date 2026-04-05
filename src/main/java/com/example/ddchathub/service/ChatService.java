@@ -16,8 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -67,5 +66,50 @@ public class ChatService {
             log.error("ส่งข้อความไม่สำเร็จ: ", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ไม่สามารถส่งข้อความได้");
         }
+    }
+
+    public List<Map<String, Object>> getChatSummaries() {
+        List<Customer> customers = customerRepository.findAll();
+        List<Map<String, Object>> summaries = new ArrayList<>();
+
+        for (Customer c : customers) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", c.getId());
+            map.put("name", c.getFullName() != null ? c.getFullName() : "ลูกค้าใหม่");
+
+            // หาข้อความล่าสุด
+            Optional<Message> lastMsg = messageRepository.findTopByCustomerIdOrderByCreatedAtDesc(c.getId());
+
+            if (lastMsg.isPresent()) {
+                map.put("lastMessage", lastMsg.get().getContent());
+                map.put("time", lastMsg.get().getCreatedAt());
+
+                // ดึงชื่อสาขา (ถ้ามี)
+                if(lastMsg.get().getLineChannel() != null) {
+                    map.put("channel", lastMsg.get().getLineChannel().getChannelName());
+                } else {
+                    map.put("channel", "LINE OA");
+                }
+            } else {
+                map.put("lastMessage", "ยังไม่มีข้อความ");
+                map.put("time", null);
+                map.put("channel", "LINE OA");
+            }
+
+            map.put("unread", 0); // 💡 ปล่อย 0 ไว้ก่อน เดี๋ยวเราทำระบบอ่านแล้วในสเต็ป 2
+            summaries.add(map);
+        }
+
+        // เรียงลำดับให้คนที่ทักมาล่าสุดอยู่บนสุด
+        summaries.sort((m1, m2) -> {
+            LocalDateTime t1 = (LocalDateTime) m1.get("time");
+            LocalDateTime t2 = (LocalDateTime) m2.get("time");
+            if (t1 == null && t2 == null) return 0;
+            if (t1 == null) return 1;
+            if (t2 == null) return -1;
+            return t2.compareTo(t1); // มากไปน้อย (ใหม่ไปเก่า)
+        });
+
+        return summaries;
     }
 }

@@ -1,5 +1,6 @@
 package com.example.ddchathub.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -21,6 +22,7 @@ public class Message {
     private UUID id;
 
     // ผูกความสัมพันธ์กับ Customer
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;

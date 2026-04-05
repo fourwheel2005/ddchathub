@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -41,5 +42,9 @@ public class ChatController {
 
         return ResponseEntity.ok().build();
     }
-
+    @GetMapping("/summary")
+    public ResponseEntity<List<Map<String, Object>>> getChatSummaries() {
+        List<Map<String, Object>> summaries = chatService.getChatSummaries();
+        return ResponseEntity.ok(summaries);
+    }
 }
