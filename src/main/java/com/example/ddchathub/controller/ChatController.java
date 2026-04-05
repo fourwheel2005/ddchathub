@@ -1,12 +1,15 @@
 package com.example.ddchathub.controller;
 
 import com.example.ddchathub.dto.ChatRequest;
+import com.example.ddchathub.repository.MessageRepository;
 import com.example.ddchathub.service.ChatService;
+import com.linecorp.bot.messaging.model.Message;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -16,13 +19,27 @@ import java.util.UUID;
 public class ChatController {
 
     private final ChatService chatService;
+    private final MessageRepository messageRepository;
 
+
+
+    @GetMapping("/customers/{customerId}/messages")
+    public ResponseEntity<List<com.example.ddchathub.entity.Message>> getChatHistory(
+            @PathVariable UUID customerId) {
+
+        List<com.example.ddchathub.entity.Message> history =
+                messageRepository.findByCustomerIdOrderByCreatedAtAsc(customerId);
+
+        return ResponseEntity.ok(history);
+    }
     @PostMapping("/{customerId}/send")
     public ResponseEntity<Void> sendMessage(
             @PathVariable UUID customerId,
             @Valid @RequestBody ChatRequest request) {
 
         chatService.sendReplyToCustomer(customerId, request.text());
+
         return ResponseEntity.ok().build();
     }
+
 }

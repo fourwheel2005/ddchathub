@@ -30,5 +30,7 @@ line:
   bot:
     channel-token: ${LINE_CHANNEL_TOKEN}
     channel-secret: ${LINE_CHANNEL_SECRET}
+    destination-id: Udd9fa45fb9912f42e68b5d383d457dde
     handler:
       path: /api/v1/webhook/line
+

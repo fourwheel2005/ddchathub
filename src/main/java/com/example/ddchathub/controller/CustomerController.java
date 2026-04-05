@@ -3,6 +3,7 @@ package com.example.ddchathub.controller;
 import com.example.ddchathub.dto.CustomerRequest;
 import com.example.ddchathub.dto.CustomerResponse;
 import com.example.ddchathub.service.CustomerService;
+import com.linecorp.bot.messaging.model.Message;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -17,7 +18,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/customers")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // อนุญาตให้หน้าบ้าน React ยิงเข้ามาได้
 public class CustomerController {
 
     private final CustomerService customerService;
@@ -43,6 +43,8 @@ public class CustomerController {
             @PathVariable UUID tagId) {
         return ResponseEntity.ok(customerService.removeTagFromCustomer(customerId, tagId));
     }
+
+
 
 
 

@@ -22,7 +22,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-websocket")
 	// 💡 LINE Messaging API SDK (เวอร์ชันใหม่ 8.4.0 หรือใหม่กว่า)
+
 	implementation("com.linecorp.bot:line-bot-spring-boot-webmvc:8.4.0") // สำหรับรับ Webhook
 	implementation("com.linecorp.bot:line-bot-spring-boot-client:8.4.0") // สำหรับยิง API กลับไปหา LINE
 	implementation("com.linecorp.bot:line-bot-messaging-api-client:8.4.0")
