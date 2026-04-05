@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: ddchathub
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ddchathub_db}
+    username: ${DB_USERNAME:root} # ค่าเริ่มต้นของ Postgres มักจะเป็น postgres (แก้ตามเครื่องคุณได้เลย)
+    password: ${DB_PASSWORD:root}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # 🤖 ใส่เตรียมไว้สำหรับฟีเจอร์ AI ในอนาคต (เช่น สรุปแชทลูกค้า หรือบอทตอบคำถาม)
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4o-mini
+          temperature: 0.0
+
+line:
+  bot:
+    channel-token: ${LINE_CHANNEL_TOKEN}
+    channel-secret: ${LINE_CHANNEL_SECRET}
+    handler:
+      path: /api/v1/webhook/line
