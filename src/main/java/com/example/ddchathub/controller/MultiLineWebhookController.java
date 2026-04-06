@@ -54,11 +54,14 @@ public class MultiLineWebhookController {
                     String lineUserId = messageEvent.source().userId();
                     String text = textMessage.text();
 
-                    // 💡 3. หาข้อมูลลูกค้า หรือสร้างใหม่พร้อมดึงรูปโปรไฟล์
+                    // 💡 3. หาข้อมูลลูกค้า หรือสร้างใหม่พร้อมดึงรูปโปรไฟล์ และ 🎯 "ผูกสาขา" 🎯
                     Customer customer = customerRepository.findByLineUserId(lineUserId)
                             .orElseGet(() -> {
                                 Customer newCust = new Customer();
                                 newCust.setLineUserId(lineUserId);
+
+                                // 🎯 จุดที่แก้ไข: ผูกลูกค้าคนนี้เข้ากับสาขา (Channel) ที่รับข้อความมา!
+                                newCust.setLineChannel(channel);
 
                                 try {
                                     // ดึงข้อมูลจาก LINE สดๆ
@@ -71,7 +74,7 @@ public class MultiLineWebhookController {
                                     log.error("ดึงโปรไฟล์ไม่ได้: {}", e.getMessage());
                                     newCust.setFullName("ลูกค้าใหม่");
                                 }
-                                return customerRepository.save(newCust);
+                                return customerRepository.save(newCust); // บันทึกลง Database
                             });
 
                     // บันทึกข้อความลง Database

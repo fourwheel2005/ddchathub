@@ -35,6 +35,10 @@ public class Customer {
     @Column(name = "profile_picture_url")
     private String profilePictureUrl;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "line_channel_id") // ชื่อคอลัมน์ใน Database ที่ใช้เชื่อมกัน
+    private LineChannel lineChannel;
+
 
     @Builder.Default
     @ManyToMany

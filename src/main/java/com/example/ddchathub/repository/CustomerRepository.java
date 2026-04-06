@@ -22,4 +22,17 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
     Optional<Customer> findByLineUserId(String lineUserId);
     @Query("SELECT c FROM Customer c JOIN c.tags t WHERE t.name = :tagName")
     List<Customer> findByTagName(@Param("tagName") String tagName);
+
+    @Query("SELECT DISTINCT c FROM Customer c " +
+            "LEFT JOIN FETCH c.tags " +
+            "LEFT JOIN FETCH c.lineChannel " +
+            "ORDER BY c.createdAt DESC")
+    List<Customer> findAllWithRelationships();
+
+    @Query("SELECT DISTINCT c FROM Customer c " +
+            "LEFT JOIN FETCH c.tags " +
+            "LEFT JOIN FETCH c.lineChannel lc " +
+            "WHERE lc.id = :channelId " + // กรองตรงนี้!
+            "ORDER BY c.createdAt DESC")
+    List<Customer> findAllWithRelationshipsByChannelId(@Param("channelId") UUID channelId);
 }

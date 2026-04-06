@@ -23,7 +23,12 @@ public class CustomerController {
     private final CustomerService customerService;
 
 
-
+    @GetMapping
+    public ResponseEntity<List<CustomerResponse>> getAll(
+            @RequestParam(required = false) UUID channelId // 💡 รับค่า ?channelId=... (เป็น false เพราะอาจจะไม่ส่งมาก็ได้)
+    ) {
+        return ResponseEntity.ok(customerService.getAllCustomers(channelId));
+    }
     // สร้างลูกค้าใหม่
     @PostMapping
     public ResponseEntity<CustomerResponse> createCustomer(@Valid @RequestBody CustomerRequest request) {
@@ -48,11 +53,7 @@ public class CustomerController {
 
 
 
-    @GetMapping
-    public ResponseEntity<List<CustomerResponse>> getCustomers(
-            @RequestParam(required = false) String tag) { // required = false หมายถึงไม่ส่งแท็กมาก็ได้ (ดึงทั้งหมด)
-        return ResponseEntity.ok(customerService.getCustomers(tag));
-    }
+
 
     @GetMapping("/export")
     public ResponseEntity<byte[]> exportCustomersCsv(

@@ -10,7 +10,11 @@ import java.util.UUID;
 @Repository
 public interface LineChannelRepository extends JpaRepository<LineChannel, UUID> {
 
-    // 💡 Method นี้สำคัญมาก: ใช้สำหรับค้นหา Channel จาก Destination ID ที่ LINE Webhook ส่งมา
     Optional<LineChannel> findByLineDestinationId(String lineDestinationId);
+
+    // ใช้ตรวจสอบชื่อซ้ำก่อน create
+    boolean existsByChannelName(String channelName);
+
+    Optional<LineChannel> findByChannelName(String channelName);
 
 }

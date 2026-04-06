@@ -16,6 +16,8 @@ public class ChatSummaryResponse {
     private LocalDateTime time;
     private int unread;
     private String channel;
+    private UUID channelId;
+    private String channelColor;
 
     // 💡 สิ่งที่หายไป! ต้องเพิ่ม List ของ Tag เข้าไปด้วยครับ
     private List<TagRequest> tags;

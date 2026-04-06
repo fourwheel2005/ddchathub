@@ -20,6 +20,8 @@ public class LineChannel {
     private UUID id;
     private String channelName; // เช่น "สาขาปากเกร็ด", "สาขาหลัก"
     private String lineDestinationId; // คือรหัส destination ที่ได้จาก Webhook
+    @Column(name = "color_code")
+    private String colorCode;
     private String channelAccessToken;
     private String channelSecret;
 }

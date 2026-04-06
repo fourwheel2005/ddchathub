@@ -120,6 +120,16 @@ public class ChatService {
                 map.put("channel", "LINE OA");
             }
 
+            if(lastMsg.get().getLineChannel() != null) {
+                map.put("channel", lastMsg.get().getLineChannel().getChannelName());
+                map.put("channelId", lastMsg.get().getLineChannel().getId().toString());
+                map.put("channelColor", lastMsg.get().getLineChannel().getColorCode());
+            } else {
+                map.put("channel", "LINE OA");
+                map.put("channelId", "");
+                map.put("channelColor", "#10B981");
+            }
+
             map.put("unread", 0); // ปล่อย 0 ไว้ก่อน
             summaries.add(map);
         }
