@@ -38,7 +38,7 @@ public class ChatController {
             @PathVariable UUID customerId,
             @Valid @RequestBody ChatRequest request) {
 
-        chatService.sendReplyToCustomer(customerId, request.text());
+        chatService.sendReplyToCustomer(customerId, request.text(), request.senderName());
 
         return ResponseEntity.ok().build();
     }
@@ -46,5 +46,19 @@ public class ChatController {
     public ResponseEntity<List<Map<String, Object>>> getChatSummaries() {
         List<Map<String, Object>> summaries = chatService.getChatSummaries();
         return ResponseEntity.ok(summaries);
+    }
+
+    @PutMapping("/customers/{customerId}/read")
+    public ResponseEntity<Void> markMessagesAsRead(@PathVariable UUID customerId) {
+        chatService.markAsRead(customerId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/customers/{customerId}/assign")
+    public ResponseEntity<Void> assignAdmin(
+            @PathVariable UUID customerId,
+            @RequestParam(required = false) String adminName) { // ถ้าไม่ส่งมาแปลว่าปลดเคสออก
+        chatService.assignAdmin(customerId, adminName);
+        return ResponseEntity.ok().build();
     }
 }

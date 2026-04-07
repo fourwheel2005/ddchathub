@@ -41,4 +41,11 @@ public class Message {
 
     @ManyToOne
     private LineChannel lineChannel;
+
+    @Column(name = "is_read", nullable = false, columnDefinition = "boolean default false")
+    @Builder.Default
+    private boolean isRead = false;
+
+    @Column(name = "sender_name")
+    private String senderName;
 }

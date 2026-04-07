@@ -32,9 +32,14 @@ public class ChatService {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
-    public void sendReplyToCustomer(UUID customerId, String text) {
+    public void sendReplyToCustomer(UUID customerId, String text, String senderName) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ไม่พบข้อมูลลูกค้า"));
+
+        if (customer.getAssignedAdmin() == null || customer.getAssignedAdmin().trim().isEmpty()) {
+            customer.setAssignedAdmin(senderName);
+            customerRepository.save(customer); // อัปเดตลงฐานข้อมูล
+        }
 
         // 💡 1. ค้นหาข้อความล่าสุด เพื่อดูว่าลูกค้าคุยค้างไว้กับ "สาขาไหน"
         Message lastMsg = messageRepository.findTopByCustomerIdOrderByCreatedAtDesc(customerId)
@@ -63,6 +68,7 @@ public class ChatService {
                     .lineChannel(channel) // ผูกว่าเป็นแชทของสาขานี้
                     .senderType("AGENT")
                     .content(text)
+                    .senderName(lastMsg.getSenderName())
                     .build();
             Message savedMsg = messageRepository.save(adminMessage);
 
@@ -85,6 +91,7 @@ public class ChatService {
             Map<String, Object> map = new HashMap<>();
             map.put("id", c.getId());
             map.put("name", c.getFullName() != null ? c.getFullName() : "ลูกค้าใหม่");
+            map.put("assignee", c.getAssignedAdmin());
 
 
             List<Map<String, Object>> tagsList = new ArrayList<>();
@@ -130,7 +137,9 @@ public class ChatService {
                 map.put("channelColor", "#10B981");
             }
 
-            map.put("unread", 0); // ปล่อย 0 ไว้ก่อน
+            long unreadCount = messageRepository.countByCustomerIdAndSenderTypeAndIsReadFalse(c.getId(), "CUSTOMER");
+            map.put("unread", unreadCount);
+
             summaries.add(map);
         }
 
@@ -145,4 +154,20 @@ public class ChatService {
 
         return summaries;
     }
+
+    @Transactional
+    public void markAsRead(UUID customerId) {
+        // ไปเรียกใช้คำสั่ง UPDATE ใน MessageRepository ที่เรากำลังจะสร้าง
+        messageRepository.markMessagesAsReadByCustomerId(customerId);
+    }
+
+    // 💡 1. เพิ่ม Method รับเคส / ปลดเคส
+    @Transactional
+    public void assignAdmin(UUID customerId, String adminName) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+        customer.setAssignedAdmin(adminName); // ถ้าส่ง null มาแปลว่าปลดแอดมินออก
+    }
+
+
 }

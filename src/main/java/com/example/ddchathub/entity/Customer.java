@@ -57,6 +57,10 @@ public class Customer {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // เพิ่มฟิลด์นี้เข้าไปครับ (เก็บชื่อแอดมิน)
+    @Column(name = "assigned_admin")
+    private String assignedAdmin;
+
     // Helper method สำหรับเพิ่ม/ลบ Tag ให้เขียนโค้ดง่ายขึ้นใน Service
     public void addTag(Tag tag) {
         this.tags.add(tag);
